@@ -1,17 +1,29 @@
-The Contiki Operating System -- ComNets fork
-============================================
-
-Contiki is an open source operating system that runs on tiny low-power
-microcontrollers and makes it possible to develop applications that
-make efficient use of the hardware while providing standardized
-low-power wireless communication for a range of hardware platforms.
-
-Contiki is used in numerous commercial and non-commercial systems,
-such as city sound monitoring, street lights, networked electrical
-power meters, industrial monitoring, radiation monitoring,
-construction site monitoring, alarm systems, remote house monitoring,
-and so on.
-
-For more information, see the Contiki website:
+The Contiki Operating System - ComNets fork
+===========================================
 
 [http://contiki-os.org](http://contiki-os.org)
+[https://github.com/contiki-os/contiki](https://github.com/contiki-os/contiki/)
+
+This repository has some slight adaptations for our lectures and laboratories.
+
+Cooja
+-----
+
+To run cooja, you have to initialize the submodules:
+
+`git submodule init`
+
+`git submodule update`
+
+and start cooja
+
+`cd tools/cooja`
+
+`ant run`
+
+
+ComNets files
+-------------
+
+Some apps for ComNets projects are located in the folder `examples/comnets`
+where you will also find a corresponding readme.
