@@ -5,6 +5,7 @@ import time
 
 while (1):
         data = [];
+	# get data from serial port
         ser = serial.Serial(
         port='/dev/ttyUSB1',
         baudrate=115200,
