@@ -7,6 +7,7 @@ while (1):
         data = [];
 	# get data from serial port
         ser = serial.Serial(
+	# Change the port for usb
         port='/dev/ttyUSB1',
         baudrate=115200,
         )
