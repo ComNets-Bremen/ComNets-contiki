@@ -9,6 +9,7 @@ while (1):
         ser = serial.Serial(
 	# Change the port for usb
         port='/dev/ttyUSB1',
+	# Change the baud rate
         baudrate=115200,
         )
         csvfile= open("batterystatus.csv", "a")
