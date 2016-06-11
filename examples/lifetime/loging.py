@@ -22,21 +22,19 @@ with open("batterystatus.csv", "a") as csvFile:
         csvwriter = csv.writer(csvFile, delimiter=";")
         logging.info("Opened CSV file")
         while True:
-                try:
-                        data = [];
-                        data = ser.readline()
-                        # if no data break out of the loop
-                        if not data:
-                            break
-                            logging.error("NO DATA")
+            data = []
+            try:
+                        
+                    data = ser.readline()
+                    data1 = time.strftime('%H:%M:%S ') + data
 
-                        data1 = time.strftime('%H:%M:%S ') + data
+                    csvwriter.writerow(data1.split())
+                    logging.info("Written data in file")
 
-                        csvwriter.writerow(data1.split())
-                        logging.info("Written data in file")
+            except KeyboardInterrupt as e:
+                # Break out of loop only when user presses CTRL+C
+                logging.error("Keyboard interrupt triggered")
+                break
 
-                except KeyboardInterrupt, e:
-                    logging.error("This error occured",str(e))
-                    break
-                    ser.close()
+        ser.close()
 
