@@ -35,6 +35,9 @@ with open("batterystatus.csv", "a") as csvFile:
                 # Break out of loop only when user presses CTRL+C
                 logging.error("Keyboard interrupt triggered")
                 break
+            except:
+                logging.error("All other errors bypassing!")
+                pass
 
         ser.close()
 

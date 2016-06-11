@@ -40,14 +40,19 @@ This id is used for example for the RIME stack.
 ## Logging Data:
 Received data will be written in `batterystatus.csv` file by running the following script:
 
-	python loging.py &
+	python loging.py
 
-The `lifetime.log` file will issue all errors for a continuous process. Only when above command is
+The `lifetime.log` file will issue errors for a continuous process. Only when above command is
 trigerred by the user and if <kbd>CTRL</kbd>+<kbd>C</kbd> is pressed will the logging be terminated. Every other
 Exception will be bypassed.
 
-### Stop Logging
- 
-__REMEMBER__ once `python loging.py &` is triggered take note of the __Process ID__ that is available on the terminal
+### Error Handling
 
-To stop the process use `sudo kill pid`. here `pid` is the number displayed after the above line is triggered on terminal
+if such an error occurs:
+
+```
+raise SerialException("could not open port %s: %s" % (self._port, msg))
+serial.serialutil.SerialException: could not open port /dev/ttyUSB1: [Errno 2] No such file or directory: '/dev/ttyUSB1'
+```
+
+please check the USBPort using `make motelist` and cross check with the `dev/ttyUSBx` in your `loging.py`
