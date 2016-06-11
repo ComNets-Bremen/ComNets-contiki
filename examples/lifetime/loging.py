@@ -1,27 +1,43 @@
 #!/usr/bin/env python
+
 import serial
 import csv
 import time
+import logging
 
-while (1):
-        data = [];
-	# get data from serial port
-        ser = serial.Serial(
-	# Change the port for usb
-        port='/dev/ttyUSB1',
-	# Change the baud rate
-        baudrate=115200,
-        )
-        csvfile= open("batterystatus.csv", "a")
-        csvwriter = csv.writer(csvfile, delimiter=";")
+logging.basicConfig(filename = 'lifetime.log', level=logging.ERROR)
+
+
+
+
+# get data from serial port
+ser = serial.Serial(port='/dev/ttyUSB1',\
+        baudrate=115200,\
+        timeout = None)
+
+
+# open file
+
+with open("batterystatus.csv", "a") as csvFile:
+        csvwriter = csv.writer(csvFile, delimiter=";")
+        logging.info("Opened CSV file")
         while True:
-                try:
-                        data= ser.readline()
-                        print(data)
-                        data1=time.strftime('%H:%M:%S ') + data
-                        csvwriter.writerow(data1.split())
-                except KeyboardInterrupt:
-                        print('Timeout: Did not received any data')
+            data = []
+            try:
+                        
+                    data = ser.readline()
+                    data1 = time.strftime('%H:%M:%S ') + data
+
+                    csvwriter.writerow(data1.split())
+                    logging.info("Written data in file")
+
+            except KeyboardInterrupt as e:
+                # Break out of loop only when user presses CTRL+C
+                logging.error("Keyboard interrupt triggered")
+                break
+            except:
+                logging.error("All other errors bypassing!")
+                pass
+
         ser.close()
-        csvfile.close()
 
