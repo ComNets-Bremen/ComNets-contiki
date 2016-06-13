@@ -1,6 +1,6 @@
 CONTIKI = ../..
 
-#CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 # Set the channel
 CFLAGS += -DRF_CHANNEL=20
