@@ -96,7 +96,7 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
     SENSORS_DEACTIVATE(battery_sensor);
 
     packetbuf_copyfrom(&msg, sizeof(struct measure_message));
-    addr.u8[0] = 2;
+    addr.u8[0] = 3;
     addr.u8[1] = 0;
     if(!linkaddr_cmp(&addr, &linkaddr_node_addr)) {
       unicast_send(&uc, &addr);
