@@ -31,70 +31,69 @@
 #include "contiki.h"
 #include "net/rime/rime.h"
 
-#include "dev/button-sensor.h"
-
 #include "dev/leds.h"
 
-#include "dev/battery-sensor.h"
-#include "dev/light-sensor.h"
-#include "dev/sht11/sht11-sensor.h"
-
 #include <stdio.h>
+
 #include "message_struct.h"
 
+float
+floor(float x)
+{
+  if(x >= 0.0f) {
+    return (float)((int)x);
+  } else {
+    return (float)((int)x - 1);
+  }
+}
+
 /*---------------------------------------------------------------------------*/
-PROCESS(unicast_sender_process, "Unicast sender");
-AUTOSTART_PROCESSES(&unicast_sender_process);
+PROCESS(unicast_receiver_process, "Unicast receiver");
+AUTOSTART_PROCESSES(&unicast_receiver_process);
 /*---------------------------------------------------------------------------*/
+static void
 recv_uc(struct unicast_conn *c, const linkaddr_t *from)
 {
-  printf("unicast message received from %d.%d\n",
-     from->u8[0], from->u8[1]);
+  struct measure_message msg;
+  // Check if the message length corresponds to the used struct
+  if (packetbuf_datalen() == sizeof(struct measure_message)){
+    packetbuf_copyto(&msg);
+//    printf("unicast message received from %d.%d: \n",
+//     from->u8[0], from->u8[1]);
+
+    printf("seq %lu", msg.seq);
+    printf(" temp %d", msg.temperature);
+    printf(" hum %d",  msg.humidity);
+    printf(" photosyntlight %d\n", msg.light1);
+  
+   
+    leds_toggle(LEDS_GREEN);
+  } else {
+    // Wrong message sizes
+    printf("Got invalid message\n");
+    leds_toggle(LEDS_RED);
+  }
+
 }
 static const struct unicast_callbacks unicast_callbacks = {recv_uc};
 static struct unicast_conn uc;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(unicast_sender_process, ev, data)
+PROCESS_THREAD(unicast_receiver_process, ev, data)
 {
-  static uint32_t cnt;
-
   PROCESS_EXITHANDLER(unicast_close(&uc);)
 
   PROCESS_BEGIN();
 
   unicast_open(&uc, 146, &unicast_callbacks);
-
   printf("My address: %d.%d\n",
           linkaddr_node_addr.u8[0],
           linkaddr_node_addr.u8[1]
-        );
-  cnt = 0;
+      );
 
 
   while(1) {
-    static struct etimer et;
-    struct measure_message msg;
-    linkaddr_t addr;
-
-    etimer_set(&et, CLOCK_SECOND);
-
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    SENSORS_ACTIVATE(battery_sensor);
-
-    msg.seq = cnt++;
-    msg.bat_voltage = (battery_sensor.value(0) *2.5 * 2) / 4096;
-
-
-    SENSORS_DEACTIVATE(battery_sensor);
-
-    packetbuf_copyfrom(&msg, sizeof(struct measure_message));
-    addr.u8[0] = 2;
-    addr.u8[1] = 0;
-    if(!linkaddr_cmp(&addr, &linkaddr_node_addr)) {
-      unicast_send(&uc, &addr);
-      printf("sent data: %u\n", msg.seq);
-    }
-
+    // Do nothing. Everything is done by the receiver callback
+    PROCESS_WAIT_EVENT();
   }
 
   PROCESS_END();

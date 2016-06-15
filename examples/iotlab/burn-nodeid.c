@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,77 +26,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
 
-#include "contiki.h"
-#include "net/rime/rime.h"
-
-#include "dev/button-sensor.h"
+/**
+ * \file
+ *         A program for burning a node ID into the flash ROM of a Tmote Sky node.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ */
 
 #include "dev/leds.h"
-
-#include "dev/battery-sensor.h"
-#include "dev/light-sensor.h"
-#include "dev/sht11/sht11-sensor.h"
+#include "dev/watchdog.h"
+#include "sys/node-id.h"
+#include "contiki.h"
+#include "sys/etimer.h"
 
 #include <stdio.h>
-#include "message_struct.h"
 
+static struct etimer etimer;
+
+PROCESS(burn_process, "Burn node id");
+AUTOSTART_PROCESSES(&burn_process);
 /*---------------------------------------------------------------------------*/
-PROCESS(unicast_sender_process, "Unicast sender");
-AUTOSTART_PROCESSES(&unicast_sender_process);
-/*---------------------------------------------------------------------------*/
-recv_uc(struct unicast_conn *c, const linkaddr_t *from)
+PROCESS_THREAD(burn_process, ev, data)
 {
-  printf("unicast message received from %d.%d\n",
-     from->u8[0], from->u8[1]);
-}
-static const struct unicast_callbacks unicast_callbacks = {recv_uc};
-static struct unicast_conn uc;
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(unicast_sender_process, ev, data)
-{
-  static uint32_t cnt;
-
-  PROCESS_EXITHANDLER(unicast_close(&uc);)
-
   PROCESS_BEGIN();
 
-  unicast_open(&uc, 146, &unicast_callbacks);
+  etimer_set(&etimer, 5*CLOCK_SECOND);
+  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
 
-  printf("My address: %d.%d\n",
-          linkaddr_node_addr.u8[0],
-          linkaddr_node_addr.u8[1]
-        );
-  cnt = 0;
-
-
+  watchdog_stop();
+  leds_on(LEDS_RED);
+#if NODEID
+  printf("Burning node id %d\n", NODEID);
+  node_id_burn(NODEID);
+  leds_on(LEDS_BLUE);
+  node_id_restore();
+  printf("Restored node id %d\n", node_id);
+#else
+#error "burn-nodeid must be compiled with nodeid=<the ID of the node>"
+  node_id_restore();
+  printf("Restored node id %d\n", node_id);
+#endif
+  leds_off(LEDS_RED + LEDS_BLUE);
+  watchdog_start();
   while(1) {
-    static struct etimer et;
-    struct measure_message msg;
-    linkaddr_t addr;
-
-    etimer_set(&et, CLOCK_SECOND);
-
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    SENSORS_ACTIVATE(battery_sensor);
-
-    msg.seq = cnt++;
-    msg.bat_voltage = (battery_sensor.value(0) *2.5 * 2) / 4096;
-
-
-    SENSORS_DEACTIVATE(battery_sensor);
-
-    packetbuf_copyfrom(&msg, sizeof(struct measure_message));
-    addr.u8[0] = 2;
-    addr.u8[1] = 0;
-    if(!linkaddr_cmp(&addr, &linkaddr_node_addr)) {
-      unicast_send(&uc, &addr);
-      printf("sent data: %u\n", msg.seq);
-    }
-
+    PROCESS_WAIT_EVENT();
   }
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

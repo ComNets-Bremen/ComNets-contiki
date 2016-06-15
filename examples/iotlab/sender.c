@@ -79,16 +79,23 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
     etimer_set(&et, CLOCK_SECOND);
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    SENSORS_ACTIVATE(light_sensor);
+    SENSORS_ACTIVATE(sht11_sensor);
     SENSORS_ACTIVATE(battery_sensor);
 
     msg.seq = cnt++;
-    msg.bat_voltage = (battery_sensor.value(0) *2.5 * 2) / 4096;
+    msg.temperature = sht11_sensor.value(SHT11_SENSOR_TEMP);
+    msg.humidity = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
+    msg.light1 = light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
 
 
+
+    SENSORS_DEACTIVATE(light_sensor);
+    SENSORS_DEACTIVATE(sht11_sensor);
     SENSORS_DEACTIVATE(battery_sensor);
 
     packetbuf_copyfrom(&msg, sizeof(struct measure_message));
-    addr.u8[0] = 2;
+    addr.u8[0] = 3;
     addr.u8[1] = 0;
     if(!linkaddr_cmp(&addr, &linkaddr_node_addr)) {
       unicast_send(&uc, &addr);

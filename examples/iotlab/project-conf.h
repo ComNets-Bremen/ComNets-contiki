@@ -1,7 +1,4 @@
 #ifndef __PROJECT_CONF_COMNETS_H__
 #define __PROJECT_CONF_COMNETS_H__
 
-
 #endif /* __PROJECT_CONF_COMNETS_H__ */
-
-
